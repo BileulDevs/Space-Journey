@@ -118,7 +118,7 @@ scroll ──> Lenis ──> ScrollTrigger ──(scrub)──> timeline GSAP �
 ## Personnaliser le contenu
 
 - **Textes, compétences, projets, métriques, contact** : tout est dans
-  `app/data/profile.ts`. Édite ce fichier — les composants se mettent à jour seuls.
+  `app/data/profile.ts`. Éditez ce fichier — les composants se mettent à jour seuls.
 - **Liens à remplacer** dans `profile.ts` : `github`, `portfolio`, `cv`.
 - **Domaine** : dans `nuxt.config.ts` (constante `SITE.url`) et `public/robots.txt`.
 
@@ -143,13 +143,6 @@ scroll ──> Lenis ──> ScrollTrigger ──(scrub)──> timeline GSAP �
 - `pixelRatio` est plafonné (2 max, moins sur mobile) pour limiter la charge GPU.
 - Le champ d'astéroïdes utilise un `InstancedMesh` (un seul draw call).
 - La boucle se met en pause quand l'onglet passe en arrière-plan.
-
-## À déposer avant mise en ligne
-
-Voir `public/ASSETS-A-REMPLACER.txt` :
-
-- `public/og-image.jpg` (1200×630) — image de partage social.
-- `public/cv-bilel-sahraoui.pdf` — le CV téléchargeable.
 
 ---
 
