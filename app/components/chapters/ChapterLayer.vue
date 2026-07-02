@@ -8,8 +8,9 @@ import {
   <div class="journey">
     <!-- ░░ CHAPITRE 1 — TERRE : origine ░░ -->
     <section id="earth" class="chapter chapter--top">
+      <span class="ghost" aria-hidden="true">01</span>
       <div class="chapter__inner">
-        <div class="panel reveal">
+        <div class="hero reveal">
           <p class="eyebrow">Chapitre 01 — Origine</p>
           <h1 class="hero-name">{{ identity.name }}</h1>
           <p class="hero-role">{{ identity.role }}</p>
@@ -19,12 +20,14 @@ import {
             <a class="btn btn--primary" :href="`mailto:${identity.email}`">Me contacter</a>
             <a class="btn" :href="identity.cv" download>Télécharger le CV</a>
           </div>
+          <p class="hero-hint">SCROLLEZ POUR DÉCOLLER ↓</p>
         </div>
       </div>
     </section>
 
     <!-- ░░ CHAPITRE 2 — SYSTÈME SOLAIRE : compétences ░░ -->
     <section id="system" class="chapter">
+      <span class="ghost ghost--left" aria-hidden="true">02</span>
       <div class="chapter__inner">
         <div class="panel panel--right panel--lg reveal">
           <p class="eyebrow">Chapitre 02 — Compétences</p>
@@ -45,6 +48,7 @@ import {
 
     <!-- ░░ CHAPITRE 3 — NÉBULEUSE : parcours ░░ -->
     <section id="nebula" class="chapter">
+      <span class="ghost" aria-hidden="true">03</span>
       <div class="chapter__inner">
         <div class="panel panel--lg reveal">
           <p class="eyebrow">Chapitre 03 — Parcours</p>
@@ -58,18 +62,19 @@ import {
               </ul>
             </article>
           </div>
-                  <div class="diplomas">
-          <div v-for="(d, i) in realisations.diplomas" :key="i" class="diploma">
-            <strong>{{ d.title }}</strong>
-            <span class="meta-row">{{ d.org }}<template v-if="d.period"> · {{ d.period }}</template></span>
+          <div class="diplomas">
+            <div v-for="(d, i) in realisations.diplomas" :key="i" class="diploma">
+              <strong>{{ d.title }}</strong>
+              <span class="meta-row">{{ d.org }}<template v-if="d.period"> · {{ d.period }}</template></span>
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </section>
 
     <!-- ░░ CHAPITRE 4 — TROU DE VER : transition ░░ -->
     <section id="wormhole" class="chapter chapter--wide">
+      <span class="ghost" aria-hidden="true">04</span>
       <div class="chapter__inner">
         <div class="panel panel--center reveal">
           <p class="eyebrow" style="justify-content:center">Chapitre 04 — Transition</p>
@@ -83,6 +88,7 @@ import {
 
     <!-- ░░ CHAPITRE 5 — EXOPLANÈTES : projets ░░ -->
     <section id="exoplanets" class="chapter">
+      <span class="ghost ghost--left" aria-hidden="true">05</span>
       <div class="chapter__inner">
         <div class="panel panel--right panel--lg reveal">
           <p class="eyebrow">Chapitre 05 — Projets</p>
@@ -106,6 +112,7 @@ import {
 
     <!-- ░░ CHAPITRE 6 — CHAMP D'ASTÉROÏDES : réalisations ░░ -->
     <section id="asteroids" class="chapter">
+      <span class="ghost" aria-hidden="true">06</span>
       <div class="chapter__inner">
         <div class="panel panel--lg reveal">
           <p class="eyebrow">Chapitre 06 — Réalisations</p>
@@ -122,6 +129,7 @@ import {
 
     <!-- ░░ CHAPITRE 7 — TROU NOIR : vision ░░ -->
     <section id="blackhole" class="chapter">
+      <span class="ghost ghost--left" aria-hidden="true">07</span>
       <div class="chapter__inner">
         <div class="panel panel--right reveal">
           <p class="eyebrow">Chapitre 07 — Vision</p>
@@ -133,6 +141,7 @@ import {
 
     <!-- ░░ CHAPITRE 8 — NOUVELLE GALAXIE : contact ░░ -->
     <section id="galaxy" class="chapter chapter--wide">
+      <span class="ghost" aria-hidden="true">08</span>
       <div class="chapter__inner">
         <div class="panel panel--center panel--lg reveal">
           <p class="eyebrow" style="justify-content:center">Chapitre 08 — Contact</p>

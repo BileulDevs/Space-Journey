@@ -1,19 +1,22 @@
 import {
-  AdditiveBlending, BackSide, Color, DoubleSide, Group, Mesh, RingGeometry,
+  AdditiveBlending, BackSide, Color, DoubleSide, Group, Mesh, NormalBlending, RingGeometry,
   ShaderMaterial, SphereGeometry, Vector3,
 } from 'three'
 import {
-  planetVertex, planetFragment, atmosphereVertex, atmosphereFragment,
+  planetVertex, planetFragment, cloudsVertex, cloudsFragment,
+  atmosphereVertex, atmosphereFragment,
 } from '../shaders/planet'
 
 export interface PlanetConfig {
   position: Vector3
   radius: number
-  type: 0 | 1 | 2 // 0 tellurique, 1 gazeuse, 2 rocheuse
+  type: 0 | 1 | 2 | 3 // 0 tellurique, 1 gazeuse, 2 rocheuse, 3 lave
   colorLow: string
   colorMid: string
   colorHigh: string
   atmosphere?: string // couleur (active la coquille atmosphérique)
+  clouds?: boolean // couche de nuages animée (telluriques)
+  nightLights?: boolean // lumières de villes sur la face nuit
   ring?: { inner: number; outer: number; color: string }
   rotationSpeed?: number
   tilt?: number
@@ -23,8 +26,8 @@ export interface PlanetConfig {
 export class Planet {
   group = new Group()
   private surfaceMat: ShaderMaterial
-  private atmosphereMat?: ShaderMaterial
-  private ringMat?: ShaderMaterial
+  private cloudsMat?: ShaderMaterial
+  private cloudsMesh?: Mesh
   private spin: number
   private disposables: Array<{ dispose: () => void }> = []
 
@@ -44,6 +47,7 @@ export class Planet {
       uniforms: {
         uTime: { value: 0 },
         uType: { value: cfg.type },
+        uNight: { value: cfg.nightLights ? 1 : 0 },
         uSunDir: { value: sunDir },
         uColorLow: { value: new Color(cfg.colorLow) },
         uColorMid: { value: new Color(cfg.colorMid) },
@@ -55,10 +59,30 @@ export class Planet {
     this.group.add(surface)
     this.disposables.push(geo, this.surfaceMat)
 
+    // --- nuages (optionnels) ---
+    if (cfg.clouds) {
+      const cGeo = new SphereGeometry(cfg.radius * 1.035, seg, seg)
+      this.cloudsMat = new ShaderMaterial({
+        vertexShader: cloudsVertex,
+        fragmentShader: cloudsFragment,
+        uniforms: {
+          uTime: { value: 0 },
+          uSunDir: { value: sunDir },
+          uSeed: { value: Math.random() * 10 },
+        },
+        transparent: true,
+        depthWrite: false,
+        blending: NormalBlending,
+      })
+      this.cloudsMesh = new Mesh(cGeo, this.cloudsMat)
+      this.group.add(this.cloudsMesh)
+      this.disposables.push(cGeo, this.cloudsMat)
+    }
+
     // --- atmosphère (optionnelle) ---
     if (cfg.atmosphere) {
       const atmoGeo = new SphereGeometry(cfg.radius * 1.18, seg, seg)
-      this.atmosphereMat = new ShaderMaterial({
+      const atmoMat = new ShaderMaterial({
         vertexShader: atmosphereVertex,
         fragmentShader: atmosphereFragment,
         uniforms: {
@@ -70,14 +94,14 @@ export class Planet {
         depthWrite: false,
         blending: AdditiveBlending,
       })
-      this.group.add(new Mesh(atmoGeo, this.atmosphereMat))
-      this.disposables.push(atmoGeo, this.atmosphereMat)
+      this.group.add(new Mesh(atmoGeo, atmoMat))
+      this.disposables.push(atmoGeo, atmoMat)
     }
 
-    // --- anneau (Saturne) ---
+    // --- anneau (Saturne, exoplanète annelée) ---
     if (cfg.ring) {
       const ringGeo = new RingGeometry(cfg.ring.inner, cfg.ring.outer, 128)
-      this.ringMat = new ShaderMaterial({
+      const ringMat = new ShaderMaterial({
         transparent: true,
         side: DoubleSide,
         depthWrite: false,
@@ -99,7 +123,6 @@ export class Planet {
         fragmentShader: /* glsl */ `
           uniform vec3 uColor; uniform float uInner; uniform float uOuter; uniform vec3 uSunDir;
           varying vec3 vPos; varying vec3 vNormalW;
-          // pseudo-bandes radiales
           float hash(float n){ return fract(sin(n)*43758.5453); }
           void main(){
             float r = length(vPos.xy);
@@ -111,16 +134,21 @@ export class Planet {
           }
         `,
       })
-      const ring = new Mesh(ringGeo, this.ringMat)
+      const ring = new Mesh(ringGeo, ringMat)
       ring.rotation.x = Math.PI / 2
       this.group.add(ring)
-      this.disposables.push(ringGeo, this.ringMat)
+      this.disposables.push(ringGeo, ringMat)
     }
   }
 
   update(elapsed: number, delta: number) {
     this.group.rotation.y += this.spin * delta
     this.surfaceMat.uniforms.uTime.value = elapsed
+    if (this.cloudsMat && this.cloudsMesh) {
+      this.cloudsMat.uniforms.uTime.value = elapsed
+      // les nuages dérivent un peu plus vite que le sol
+      this.cloudsMesh.rotation.y += this.spin * 0.35 * delta
+    }
   }
 
   dispose() {

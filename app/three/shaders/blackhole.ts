@@ -21,6 +21,7 @@ uniform float uTime;
 uniform float uInner;
 uniform float uOuter;
 uniform vec2 uDopplerDir; // direction (plan local XY) du côté qui s'approche → plus brillant
+uniform float uGain;      // intensité globale (l'arc « lentillé » est un peu plus doux)
 varying vec2 vUv;
 varying vec3 vPos;
 
@@ -48,7 +49,7 @@ void main(){
   float doppler = 0.55 + 0.75 * max(dot(dir, normalize(uDopplerDir)), 0.0);
 
   float alpha = gas * smoothstep(1.0, 0.7, radial) * smoothstep(0.0, 0.08, radial);
-  float bright = (1.4 - radial) * doppler;
+  float bright = (1.4 - radial) * doppler * uGain;
 
   gl_FragColor = vec4(col * bright, alpha);
 }

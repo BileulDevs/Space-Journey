@@ -20,7 +20,7 @@ const show = computed(() => journeyHud.started && journeyHud.progress > 0.965)
 .end {
   position: fixed;
   left: 50%;
-  bottom: clamp(2rem, 7vh, 5.5rem);
+  bottom: clamp(2rem, 6vh, 4.5rem);
   transform: translateX(-50%);
   z-index: 20;
   text-align: center;

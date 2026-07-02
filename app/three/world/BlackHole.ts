@@ -48,6 +48,7 @@ export class BlackHole {
         uInner: { value: inner },
         uOuter: { value: outer },
         uDopplerDir: { value: new Vector2(1, 0) }, // côté +X plus brillant
+        uGain: { value: 1 },
       },
       transparent: true,
       depthWrite: false,
@@ -57,10 +58,38 @@ export class BlackHole {
     this.disk.rotation.x = Math.PI / 2 // couche le disque dans le plan horizontal
     this.group.add(this.disk)
     this.disposables.push(dGeo, this.diskMat)
+
+    // --- arc « lentillé » vertical (façon Gargantua) ---
+    // Approximation du mirage gravitationnel : l'image du disque arrière apparaît
+    // comme un anneau vertical autour de la silhouette. Anneau dans le plan XY
+    // (face à la caméra qui approche le long de Z), occlus au centre par l'horizon.
+    const vInner = horizon * 1.32
+    const vOuter = horizon * 2.7
+    const vGeo = new RingGeometry(vInner, vOuter, 200, 1)
+    this.lensMat = new ShaderMaterial({
+      vertexShader: diskVertex,
+      fragmentShader: diskFragment,
+      uniforms: {
+        uTime: { value: 0 },
+        uInner: { value: vInner },
+        uOuter: { value: vOuter },
+        uDopplerDir: { value: new Vector2(1, 0) },
+        uGain: { value: 0.62 },
+      },
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    })
+    const lens = new Mesh(vGeo, this.lensMat)
+    this.group.add(lens)
+    this.disposables.push(vGeo, this.lensMat)
   }
+
+  private lensMat!: ShaderMaterial
 
   update(elapsed: number, delta: number) {
     this.diskMat.uniforms.uTime.value = elapsed
+    this.lensMat.uniforms.uTime.value = elapsed * 0.8
     this.disk.rotation.z += delta * 0.05
   }
 

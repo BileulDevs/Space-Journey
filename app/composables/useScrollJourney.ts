@@ -8,11 +8,9 @@ import { STATIONS, INTRO_STATION } from '~/three/camera/stations'
  * Orchestration du voyage :
  * - Lenis pilote le scroll (synchronisé avec le ticker GSAP)
  * - une timeline GSAP scrubbée par ScrollTrigger déplace la caméra (camProxy)
- *   le long des stations, en synchronisation parfaite avec le scroll
- * - enveloppe de « warp » au passage du trou de ver
- * - révélation des panneaux de contenu
- *
- * Découplé du moteur 3D : on n'écrit que dans l'état partagé `camProxy`.
+ *   entre les stations, en passant par des waypoints `via` → arcs de travelling
+ * - enveloppe de warp + coup de focale (FOV) au trou de ver
+ * - révélation des panneaux, navigation vers un chapitre (HUD)
  */
 export function useScrollJourney() {
   let lenis: Lenis | null = null
@@ -28,14 +26,15 @@ export function useScrollJourney() {
     // position initiale (intro)
     Object.assign(camProxy, {
       px: INTRO_STATION.p[0], py: INTRO_STATION.p[1], pz: INTRO_STATION.p[2],
-      tx: INTRO_STATION.t[0], ty: INTRO_STATION.t[1], tz: INTRO_STATION.t[2], warp: 0,
+      tx: INTRO_STATION.t[0], ty: INTRO_STATION.t[1], tz: INTRO_STATION.t[2],
+      warp: 0, fov: 62,
     })
 
     if (!reduced) {
       lenis = new Lenis({
         autoRaf: false,        // on pilote depuis le ticker GSAP (une seule boucle)
         duration: 1.4,
-        syncTouch: false,      // meilleure perf tactile
+        syncTouch: false,
         wheelMultiplier: 0.9,
       })
       lenis.stop() // verrouillé jusqu'au lancement
@@ -43,10 +42,8 @@ export function useScrollJourney() {
       tickerFn = (time: number) => lenis?.raf(time * 1000)
       gsap.ticker.add(tickerFn)
       gsap.ticker.lagSmoothing(0)
-    }
 
-    // révélations de contenu (sautées si reduced-motion : CSS les affiche déjà)
-    if (!reduced) {
+      // révélations de contenu
       gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
         gsap.to(el, {
           opacity: 1, y: 0, duration: 1.1, ease: 'power3.out',
@@ -57,24 +54,20 @@ export function useScrollJourney() {
   }
 
   /**
-   * Construit la timeline caméra, alignée sur la position réelle des sections
-   * (mesurée dans le DOM → robuste si on change les hauteurs). Chaque station est
-   * atteinte quand sa section est lue ; la dernière (galaxie) est atteinte un peu
-   * en avance puis MAINTENUE jusqu'en bas (la galaxie occupe seule la fin).
+   * Timeline caméra alignée sur la position réelle des sections (mesurée dans
+   * le DOM). Chaque station est atteinte quand sa section est lue ; la dernière
+   * (galaxie) est atteinte en avance puis MAINTENUE jusqu'en bas.
    */
   function buildCameraTimeline() {
     const sections = Array.from(document.querySelectorAll<HTMLElement>('.chapter'))
     const range = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
     const vh = window.innerHeight
 
-    // fraction de scroll où chaque station doit être atteinte
     const at: number[] = sections.map((sec, i) => {
-      if (i === 0) return 0 // Terre : station dès le départ (héros ancré en haut)
+      if (i === 0) return 0
       const center = sec.offsetTop + sec.offsetHeight / 2 - vh / 2
       return Math.min(1, Math.max(0, center / range))
     })
-    // dernière station (galaxie) : atteinte un peu avant le centre de sa section,
-    // pour qu'elle soit en place pendant la lecture du contact, puis maintenue.
     if (at.length > 1) {
       const last = sections[sections.length - 1]
       const earlier = (last.offsetTop + last.offsetHeight * 0.22 - vh / 2) / range
@@ -84,21 +77,38 @@ export function useScrollJourney() {
     const tl = gsap.timeline({ defaults: { ease: 'power1.inOut' } })
     for (let i = 1; i < STATIONS.length; i++) {
       const s = STATIONS[i]
+      const d = Math.max(0.02, at[i] - at[i - 1])
+      const t0 = at[i - 1]
+      // la visée glisse sur tout le segment…
       tl.to(camProxy, {
-        px: s.p[0], py: s.p[1], pz: s.p[2],
         tx: s.t[0], ty: s.t[1], tz: s.t[2],
-        duration: Math.max(0.02, at[i] - at[i - 1]),
-      }, at[i - 1])
+        duration: d, ease: 'power1.inOut',
+      }, t0)
+      // …la position passe par le waypoint (arc de travelling) si défini
+      if (s.via) {
+        tl.to(camProxy, {
+          px: s.via[0], py: s.via[1], pz: s.via[2],
+          duration: d * 0.5, ease: 'power1.in',
+        }, t0)
+        tl.to(camProxy, {
+          px: s.p[0], py: s.p[1], pz: s.p[2],
+          duration: d * 0.5, ease: 'power1.out',
+        }, t0 + d * 0.5)
+      } else {
+        tl.to(camProxy, {
+          px: s.p[0], py: s.p[1], pz: s.p[2],
+          duration: d, ease: 'power1.inOut',
+        }, t0)
+      }
     }
-    // maintien sur la galaxie jusqu'à la fin (étend la timeline à une durée de 1.0,
-    // pour que la fraction de scroll = temps de timeline).
+    // maintien sur la galaxie jusqu'à la fin (durée totale = 1.0)
     const lastAt = at[STATIONS.length - 1]
     tl.to({ h: 0 }, { h: 1, duration: Math.max(0.02, 1 - lastAt) }, lastAt)
 
-    // enveloppe de warp au trou de ver (station 3)
+    // enveloppe de warp + coup de focale au trou de ver (station 3)
     const wAt = at[3] ?? 0.42
-    tl.to(camProxy, { warp: 1, duration: 0.05, ease: 'power2.in' }, Math.max(0, wAt - 0.05))
-    tl.to(camProxy, { warp: 0, duration: 0.08, ease: 'power2.out' }, wAt + 0.02)
+    tl.to(camProxy, { warp: 1, fov: 76, duration: 0.05, ease: 'power2.in' }, Math.max(0, wAt - 0.05))
+    tl.to(camProxy, { warp: 0, fov: 62, duration: 0.08, ease: 'power2.out' }, wAt + 0.02)
 
     masterST = ScrollTrigger.create({
       animation: tl,
@@ -116,15 +126,15 @@ export function useScrollJourney() {
     ScrollTrigger.refresh()
   }
 
-  /** Lancement : transition intro → première station, puis déverrouille le scroll. */
+  /** Lancement : envol intro → première station, puis déverrouille le scroll. */
   function start() {
     journeyHud.started = true
 
     if (reduced) {
-      // pas d'envol cinématique : on se cale directement sur la station 0
       Object.assign(camProxy, {
         px: STATIONS[0].p[0], py: STATIONS[0].p[1], pz: STATIONS[0].p[2],
         tx: STATIONS[0].t[0], ty: STATIONS[0].t[1], tz: STATIONS[0].t[2],
+        fov: 55,
       })
       buildCameraTimeline()
       return
@@ -136,6 +146,7 @@ export function useScrollJourney() {
       .to(camProxy, {
         px: s0.p[0], py: s0.p[1], pz: s0.p[2],
         tx: s0.t[0], ty: s0.t[1], tz: s0.t[2],
+        fov: 55,
         duration: 3.2, ease: 'power3.inOut',
       }, 0)
       .to(camProxy, { warp: 0, duration: 1.2, ease: 'power2.out' }, 1.0)
@@ -145,7 +156,16 @@ export function useScrollJourney() {
       })
   }
 
-  /** Ramène en haut en douceur — la caméra rembobine le voyage jusqu'à la Terre. */
+  /** Fait défiler jusqu'au chapitre `id` (le panneau arrive centré). */
+  function scrollToSection(id: string) {
+    const sec = document.getElementById(id)
+    if (!sec) return
+    const target = sec.offsetTop + Math.max(0, (sec.offsetHeight - window.innerHeight) / 2)
+    if (lenis) lenis.scrollTo(target, { duration: 1.8 })
+    else window.scrollTo({ top: target, behavior: 'smooth' })
+  }
+
+  /** Ramène en haut en douceur — la caméra rembobine le voyage. */
   function scrollToTop() {
     if (lenis) lenis.scrollTo(0, { duration: 2.2 })
     else window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -159,5 +179,5 @@ export function useScrollJourney() {
     lenis = null
   }
 
-  return { setup, start, destroy, scrollToTop }
+  return { setup, start, destroy, scrollToTop, scrollToSection }
 }
