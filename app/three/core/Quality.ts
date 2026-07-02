@@ -28,18 +28,18 @@ export function detectQuality(): QualityProfile {
 
   const profiles: Record<Tier, QualityProfile> = {
     high: {
-      tier: 'high', bloom: true, bloomStrength: 0.55,
-      starCount: 14000, galaxyCount: 28000, nebulaPlanes: 9,
+      tier: 'high', bloom: true, bloomStrength: 0.6,
+      starCount: 16000, galaxyCount: 28000, nebulaPlanes: 12,
       asteroidCount: 420, sphereSegments: 128, maxPixelRatio: 2,
     },
     medium: {
-      tier: 'medium', bloom: true, bloomStrength: 0.35,
-      starCount: 8000, galaxyCount: 16000, nebulaPlanes: 6,
+      tier: 'medium', bloom: true, bloomStrength: 0.75,
+      starCount: 9000, galaxyCount: 16000, nebulaPlanes: 8,
       asteroidCount: 240, sphereSegments: 96, maxPixelRatio: 2,
     },
     low: {
       tier: 'low', bloom: false, bloomStrength: 0,
-      starCount: 4000, galaxyCount: 8000, nebulaPlanes: 4,
+      starCount: 4500, galaxyCount: 8000, nebulaPlanes: 5,
       asteroidCount: 120, sphereSegments: 64, maxPixelRatio: 1.5,
     },
   }

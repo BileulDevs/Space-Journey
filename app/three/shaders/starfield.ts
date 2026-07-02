@@ -9,9 +9,11 @@ attribute float aSeed;
 attribute vec3 aColor;
 varying vec3 vColor;
 varying float vTwinkle;
+varying float vBig;
 
 void main(){
   vColor = aColor;
+  vBig = aScale;
   vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
   // scintillement doux et désynchronisé
   vTwinkle = 0.65 + 0.35 * sin(uTime * (0.6 + aSeed * 1.8) + aSeed * 30.0);
@@ -24,6 +26,7 @@ void main(){
 export const starfieldFragment = /* glsl */ `
 varying vec3 vColor;
 varying float vTwinkle;
+varying float vBig;
 
 void main(){
   // disque doux avec halo
@@ -32,6 +35,14 @@ void main(){
   float core = smoothstep(0.5, 0.0, d);
   float glow = smoothstep(0.5, 0.12, d);
   float alpha = (core * 0.85 + glow * 0.35) * vTwinkle;
+
+  // pointes de diffraction (croix) sur les étoiles brillantes uniquement
+  if(vBig > 1.9){
+    float spikeH = max(0.0, 1.0 - abs(uv.x) * 2.0) * exp(-abs(uv.y) * 26.0);
+    float spikeV = max(0.0, 1.0 - abs(uv.y) * 2.0) * exp(-abs(uv.x) * 26.0);
+    alpha += (spikeH + spikeV) * 0.55 * vTwinkle;
+  }
+
   if(alpha < 0.01) discard;
   gl_FragColor = vec4(vColor * (0.8 + vTwinkle * 0.6), alpha);
 }

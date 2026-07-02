@@ -8,6 +8,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js'
+import { CinematicShader } from './shaders/cinematic'
 
 import { Sizes } from './core/Sizes'
 import { Clock } from './core/Clock'
@@ -27,6 +28,7 @@ export class Experience {
   private composer?: EffectComposer
   private bloom?: UnrealBloomPass
   private fxaa?: ShaderPass
+  private film?: ShaderPass
   private sizes: Sizes
   private clock = new Clock()
   private world: World
@@ -49,6 +51,7 @@ export class Experience {
     this.lookAt.set(camProxy.tx, camProxy.ty, camProxy.tz)
     this.camera.position.copy(this.camPos)
     this.camera.lookAt(this.lookAt)
+    this.prevCamX = this.camPos.x
 
     this.renderer = new WebGLRenderer({
       canvas,
@@ -103,6 +106,9 @@ export class Experience {
     this.fxaa = new ShaderPass(FXAAShader)
     this.updateFxaaResolution()
     this.composer.addPass(this.fxaa)
+    // Passe « pellicule » finale : grain, vignettage, aberration, stries de warp.
+    this.film = new ShaderPass(CinematicShader)
+    this.composer.addPass(this.film)
   }
 
   private updateFxaaResolution() {
@@ -152,10 +158,35 @@ export class Experience {
       this.lookAt.lerp(targetLook, k)
       this.camera.position.copy(this.camPos)
       this.camera.lookAt(this.lookAt)
-      // léger roulis pour l'effet vaisseau
-      this.camera.rotation.z = Math.sin(e * 0.2) * 0.02 + camProxy.warp * 0.15
+
+      // focale animée (élargie pendant le warp)
+      if (Math.abs(this.camera.fov - camProxy.fov) > 0.05) {
+        this.camera.fov = camProxy.fov
+        this.camera.updateProjectionMatrix()
+      }
+
+      // banking : la caméra s'incline dans les virages (vitesse latérale)
+      const vx = (this.camPos.x - this.prevCamX) / Math.max(delta, 1e-4)
+      this.prevCamX = this.camPos.x
+      const targetBank = Math.max(-0.14, Math.min(0.14, -vx * 0.035))
+      this.bank += (targetBank - this.bank) * (1 - Math.pow(0.02, delta))
+
+      // roulis = respiration + warp + banking
+      this.camera.rotation.z = Math.sin(e * 0.2) * 0.02 + camProxy.warp * 0.15 + this.bank
+
+      // tremblé « caméra épaule » pendant le warp
+      if (camProxy.warp > 0.01) {
+        const sh = camProxy.warp
+        this.camera.position.x += Math.sin(e * 57.3) * 0.18 * sh
+        this.camera.position.y += Math.cos(e * 49.7) * 0.14 * sh
+      }
 
       this.world.update(e, delta, this.camera, camProxy.warp)
+
+      if (this.film) {
+        this.film.uniforms.uTime.value = e
+        this.film.uniforms.uWarp.value = camProxy.warp
+      }
 
       if (this.composer) this.composer.render()
       else this.renderer.render(this.scene, this.camera)
@@ -174,6 +205,8 @@ export class Experience {
 
   private _tmpPos = new Vector3()
   private _tmpLook = new Vector3()
+  private prevCamX = 0
+  private bank = 0
 
   /** À appeler quand l'onglet repasse au premier plan (évite un gros delta). */
   resume() {

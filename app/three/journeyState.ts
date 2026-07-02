@@ -18,6 +18,8 @@ export const camProxy = {
   tz: INTRO_STATION.t[2],
   // intensité du « warp » (0..1), montée pendant le trou de ver
   warp: 0,
+  // focale animable (élargie pendant le warp pour l'effet d'accélération)
+  fov: 62,
 }
 
 export const journeyHud = reactive({

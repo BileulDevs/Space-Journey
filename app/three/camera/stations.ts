@@ -2,10 +2,13 @@ import { Vector3 } from 'three'
 
 /**
  * SOURCE DE VÉRITÉ SPATIALE
- * Positions des corps célestes ET trajectoire caméra, au même endroit,
- * pour qu'objets 3D et chorégraphie restent synchronisés.
+ * Positions des corps célestes ET trajectoire caméra, au même endroit.
+ * Le vaisseau vole le long de l'axe -Z.
  *
- * Le vaisseau vole le long de l'axe -Z. Plus on scrolle, plus z décroît.
+ * Cinématographie : chaque station cadre son sujet DÉCENTRÉ (règle des tiers,
+ * côté opposé au panneau de texte), et les segments passent par des waypoints
+ * `via` → arcs de travelling (survol de la Lune, plongée sous les anneaux,
+ * contournement du trou noir) au lieu de lignes droites.
  */
 
 export const WORLD = {
@@ -33,34 +36,36 @@ export const WORLD = {
 }
 
 export interface Station {
-  /** position de la caméra */
+  /** position de la caméra à l'arrivée sur le chapitre */
   p: [number, number, number]
   /** point visé */
   t: [number, number, number]
+  /** waypoint de caméra sur le trajet VERS cette station (arc de travelling) */
+  via?: [number, number, number]
 }
 
-/**
- * Une station par chapitre (8). GSAP interpole entre elles, piloté par le scroll.
- * L'index correspond à `chapters[i]` dans profile.ts.
- */
 export const STATIONS: Station[] = [
-  // 0 — Terre (héros) : Terre légèrement décentrée, Lune au loin
-  { p: [7, 2.4, 16], t: [0, 0, 0] },
-  // 1 — Système solaire : on plonge vers les géantes
-  { p: [9, 0, -52], t: [-26, 5, -132] },
+  // 0 — Terre : Terre à droite du cadre (texte à gauche), Lune au loin
+  { p: [-3, 2, 15], t: [-7, -0.5, -8] },
+  // 1 — Système solaire : Jupiter en majesté à gauche, Saturne en profondeur
+  //     via = survol rapproché de la Lune au décollage
+  { p: [2, 3, -95], t: [-22, 4, -148], via: [22, 5, -6] },
   // 2 — Nébuleuse : on entre dans le nuage
-  { p: [3, 6, -250], t: [0, 0, -330] },
+  //     via = plongée SOUS les anneaux de Saturne
+  { p: [4, 2, -286], t: [-8, 4, -346], via: [18, -8, -182] },
   // 3 — Trou de ver : alignement sur le tunnel
-  { p: [0, 0, -412], t: [0, 0, -470] },
-  // 4 — Exoplanètes : on slalome entre les mondes
-  { p: [10, -2, -498], t: [-12, 2, -560] },
-  // 5 — Champ d'astéroïdes : navigation latérale
-  { p: [-9, 3, -648], t: [6, -2, -700] },
-  // 6 — Trou noir : approche prudente, légèrement au-dessus du disque
-  { p: [0, 9, -724], t: [0, 0, -800] },
-  // 7 — Nouvelle galaxie : recul contemplatif, vue panoramique
-  { p: [0, 22, -912], t: [0, -10, -1010] },
+  { p: [0, 0, -408], t: [0, 0, -482], via: [0, 2, -372] },
+  // 4 — Exoplanètes : slalom, mondes étagés dans le cadre
+  { p: [14, 1, -505], t: [-8, 2, -566], via: [-2, -1, -494] },
+  // 5 — Champ d'astéroïdes : traversée en diagonale
+  //     via = louvoiement près de la 3e exoplanète
+  { p: [-12, 4, -640], t: [10, -3, -702], via: [-14, -3, -600] },
+  // 6 — Trou noir : approche par le dessus du disque, trou décentré à gauche
+  { p: [0, 7, -727], t: [5, 0, -802], via: [-4, 15, -706] },
+  // 7 — Nouvelle galaxie : léger surplomb contemplatif
+  //     via = grand arc qui CONTOURNE le trou noir par le flanc
+  { p: [0, 26, -902], t: [0, -12, -1016], via: [-30, 12, -828] },
 ]
 
 /** Position/visée de départ avant le lancement (intro). */
-export const INTRO_STATION: Station = { p: [2, 1.5, 40], t: [0, 0, 0] }
+export const INTRO_STATION: Station = { p: [-3, 2.5, 42], t: [-7, -0.5, -8] }

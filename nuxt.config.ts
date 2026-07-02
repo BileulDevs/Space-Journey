@@ -1,7 +1,7 @@
 import { defineNuxtConfig } from 'nuxt/config'
 
 const SITE = {
-  url: 'https://bilelsahraoui.netlify.app/',
+  url: 'https://bilel-sahraoui.dev', // ← remplace par ton domaine final
   name: 'Bilel Sahraoui — Développeur Full Stack',
   description:
     "Portfolio immersif de Bilel Sahraoui, développeur Full Stack (Node.js, TypeScript, .NET). Un voyage spatial à travers compétences, projets et expériences.",
@@ -11,7 +11,7 @@ const SITE = {
 }
 
 export default defineNuxtConfig({
-  ssr: false,
+  ssr: true,
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
