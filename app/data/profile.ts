@@ -35,27 +35,48 @@ export const competences: Planet[] = [
     id: 'jupiter',
     name: 'Jupiter',
     domain: 'Backend & Architecture',
-    items: ['Node.js (Express)', 'APIs REST', 'GraphQL', 'Clean Architecture', 'Microservices', 'JWT'],
+    items: [
+      'Node.js (Express)', 'APIs REST', 'Clean Architecture', 'Microservices',
+      'JWT', 'Zod', 'Prisma', 'Stripe',
+    ],
   },
   {
     id: 'saturn',
     name: 'Saturne',
     domain: 'DevOps · Cloud · Données',
     // les anneaux = les couches de données
-    items: ['Azure', 'Azure DevOps', 'CI/CD', 'Docker', 'MySQL', 'MongoDB', 'PostgreSQL', 'Supabase'],
+    items: [
+      'Azure', 'Azure DevOps', 'Railway', 'CI/CD', 'Docker', 'Git',
+      'PostgreSQL', 'MySQL', 'MongoDB', 'Supabase', 'Cloudflare R2',
+    ],
   },
   {
     id: 'belt',
     name: "Ceinture d'astéroïdes",
     domain: 'Frontend & Qualité',
-    items: ['Vue.js / Nuxt', 'React / Next', 'TailwindCSS', 'Jest', 'Scrum', 'Code Review', 'RGPD'],
+    items: [
+      'Vue.js / Nuxt', 'React / Next', 'HTML5 / CSS3', 'TailwindCSS',
+      'Vitest', 'Scrum', 'Code Review', 'RGPD',
+    ],
   },
 ]
 
 /** Chapitre 3 — Nébuleuse : le parcours, là où la carrière s'est condensée. */
 export const parcours = [
   {
-    title: 'Apprenti Développeur Full Stack',
+    title: 'Développeur Full Stack / Chef de projet',
+    org: 'Noxtys',
+    period: 'Janv. 2026 — Août 2026',
+    points: [
+      "Conception et développement solo d'un SaaS (monorepo TypeScript), de l'architecture à la mise en production (Railway) : Next.js 14 App Router, Express 5, PostgreSQL/Prisma.",
+      'Architecture backend modulaire stricte (schema → service → controller → routes → openapi) avec Zod comme source unique de validation et de typage.',
+      "Intégration paiement complète (Stripe : webhooks, proration, Subscription Schedules) avec gestion de quotas par plan et contrôles d'accès (IDOR).",
+      'Pipeline de modération de contenu conforme DSA (signalement, revue, décisions).',
+      'Stockage objet (Cloudflare R2), authentification, tests (Vitest), documentation API générée (OpenAPI/Swagger).',
+    ],
+  },
+  {
+    title: 'Développeur Full Stack',
     org: 'Athlon Car Lease',
     period: 'Sept. 2022 — Oct. 2025 · 3 ans',
     points: [
@@ -63,6 +84,7 @@ export const parcours = [
       "Système de monitoring unifié sur 50+ applications Cloud : disponibilité et traçage des erreurs HTTP, MTTD divisé par 2.",
       "Application interne de conformité RGPD : chiffrement, déchiffrement et purge automatisée sur une base de 4 To.",
       'Optimisation des traitements batch (tâches nocturnes) : −80 % de charge serveur en heures ouvrées, +30 % de temps de réponse.',
+      "Migration de 50+ applications métier vers Azure : −25 % de coûts d'infrastructure, disponibilité portée à 99,9 %.",
     ],
   },
   {
@@ -86,6 +108,15 @@ export interface Project {
 }
 
 export const projets: Project[] = [
+  {
+    id: 'noxtys',
+    name: 'Noxtys',
+    tagline: 'SaaS conçu et déployé en solo',
+    stack: ['Next.js 14', 'Express 5', 'PostgreSQL/Prisma', 'Zod', 'Stripe'],
+    description:
+      "Compagnon d'observation pour astronomes amateurs : planification, journal de session et galerie d'astrophotographie. Monorepo TypeScript porté seul de l'architecture à la production — abonnements multi-tiers (Stripe : webhooks, proration, quotas par plan), modération de contenu conforme DSA et API documentée (OpenAPI).",
+    link: { label: 'Noxtys', url: 'https://noxtys.com' },
+  },
   {
     id: 'minecraft',
     name: 'Mods Minecraft (Java)',
@@ -148,6 +179,7 @@ export const realisations = {
     { n: '99,9%', l: 'disponibilité applicative' },
     { n: '1 500+', l: 'utilisateurs internes servis' },
     { n: '−25%', l: "coûts d'infrastructure Cloud" },
+    { n: '0 → prod', l: 'SaaS porté seul jusqu’au déploiement' },
   ],
   diplomas: [
     { title: 'Master 2 — Expert en Développement Web (Bac+5)', org: 'Paris Ynov Campus', period: '2025' },
@@ -161,6 +193,7 @@ export const vision = {
   paragraphs: [
     "Le code que j'écris doit survivre à l'enthousiasme du premier jour. Architecture propre, séparation des responsabilités, observabilité : la fiabilité n'est pas une option, c'est la fondation.",
     "Mes projets personnels tel que mes mods à + d'un million de téléchargements m'ont appris à concevoir pour l'échelle dès la première ligne. Mon expérience en entreprise m'a appris à le faire sous contrainte, en production, pour des milliers d'utilisateurs.",
+    "Concevoir seul un SaaS complet — architecture, paiement, conformité, déploiement — m'a appris ce qu'on ne délègue pas : les décisions structurantes se prennent tôt, et chacune se paie plus tard.",
     "Privacy by design, performances mesurées et analyse du comportement des systèmes en conditions réelles : les décisions techniques doivent résister à la charge autant qu'au temps.",
   ],
 }
@@ -204,8 +237,9 @@ export function personSchema(siteUrl: string) {
     url: siteUrl,
     address: { '@type': 'PostalAddress', addressLocality: 'Île-de-France', addressCountry: 'FR' },
     knowsAbout: [
-      'Node.js', 'TypeScript', '.NET', 'Vue.js', 'Nuxt', 'React',
-      'Azure', 'Docker', 'GraphQL', 'Clean Architecture', 'Microservices',
+      'Node.js', 'TypeScript', '.NET', 'Vue.js', 'Nuxt', 'React', 'Next.js',
+      'Azure', 'Docker', 'Clean Architecture', 'Microservices',
+      'PostgreSQL', 'Prisma', 'Zod', 'Stripe',
     ],
     alumniOf: [
       { '@type': 'CollegeOrUniversity', name: 'Paris Ynov Campus' },
