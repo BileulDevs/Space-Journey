@@ -43,7 +43,7 @@ function engage() {
 <template>
   <div class="intro" :class="{ 'intro--leaving': leaving }">
     <div class="intro__inner">
-      <p class="intro__id">MISSION PORTFOLIO — ÉDITION ORBITALE</p>
+      <p class="intro__id">MISSION PORTFOLIO</p>
 
       <h1 class="intro__name">BILEL<br>SAHRAOUI</h1>
       <p class="intro__tag">Un voyage à travers mon univers</p>
