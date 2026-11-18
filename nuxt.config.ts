@@ -1,13 +1,10 @@
 import { defineNuxtConfig } from 'nuxt/config'
 
 const SITE = {
-  url: 'https://bilel-sahraoui.dev', // ← remplace par ton domaine final
-  name: 'Bilel Sahraoui — Développeur Full Stack',
+  name: 'Space Journey',
   description:
-    "Portfolio immersif de Bilel Sahraoui, développeur Full Stack (Node.js, TypeScript, .NET). Un voyage spatial à travers compétences, projets et expériences.",
-  image: '/og-image.jpg',
+    'Un voyage spatial cinématique piloté au scroll : Terre, système solaire, nébuleuse, trou de ver, exoplanètes, astéroïdes, trou noir et nouvelle galaxie.',
   lang: 'fr',
-  locale: 'fr_FR',
 }
 
 export default defineNuxtConfig({
@@ -15,8 +12,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  // Le contenu (texte du CV) est rendu côté serveur dans les overlays HTML :
-  // le 3D est une amélioration progressive, ce qui préserve un SEO solide.
   css: ['~/assets/css/main.css'],
 
   // Noms de composants sans préfixe de dossier (<MissionHud/> et non <HudMissionHud/>).
@@ -33,31 +28,16 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: SITE.description },
         { name: 'theme-color', content: '#05070d' },
-        { name: 'author', content: 'Bilel Sahraoui' },
-        // Open Graph
-        { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: SITE.name },
-        { property: 'og:title', content: SITE.name },
-        { property: 'og:description', content: SITE.description },
-        { property: 'og:image', content: SITE.url + SITE.image },
-        { property: 'og:url', content: SITE.url },
-        { property: 'og:locale', content: SITE.locale },
-        // Twitter / X
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: SITE.name },
-        { name: 'twitter:description', content: SITE.description },
-        { name: 'twitter:image', content: SITE.url + SITE.image },
       ],
       link: [
-        { rel: 'canonical', href: SITE.url },
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-        // Polices : couche display (Space Grotesk), télémétrie (Space Mono), corps (Inter)
+        // Police de télémétrie du HUD (Space Mono)
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
           href:
-            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap',
+            'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap',
         },
       ],
     },
@@ -69,10 +49,6 @@ export default defineNuxtConfig({
     tsConfig: { compilerOptions: { skipLibCheck: true } },
   },
 
-  // Expose l'URL du site aux server routes (sitemap) et au client si besoin.
-  runtimeConfig: {
-    public: { siteUrl: SITE.url },
-  },
 
   vite: {
     // Three (et surtout ses addons) doivent passer par le même pré-bundle :

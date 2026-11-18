@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { journeyHud } from '~/three/journeyState'
-import { chapters } from '~/data/profile'
+import { chapters } from '~/data/chapters'
 
 defineProps<{ muted: boolean }>()
 const emit = defineEmits<{ nav: [id: string]; toggleAudio: [] }>()

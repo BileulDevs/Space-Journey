@@ -10,7 +10,7 @@ import { STATIONS, INTRO_STATION } from '~/three/camera/stations'
  * - une timeline GSAP scrubbée par ScrollTrigger déplace la caméra (camProxy)
  *   entre les stations, en passant par des waypoints `via` → arcs de travelling
  * - enveloppe de warp + coup de focale (FOV) au trou de ver
- * - révélation des panneaux, navigation vers un chapitre (HUD)
+ * - navigation vers un chapitre (HUD)
  */
 export function useScrollJourney() {
   let lenis: Lenis | null = null
@@ -42,14 +42,6 @@ export function useScrollJourney() {
       tickerFn = (time: number) => lenis?.raf(time * 1000)
       gsap.ticker.add(tickerFn)
       gsap.ticker.lagSmoothing(0)
-
-      // révélations de contenu
-      gsap.utils.toArray<HTMLElement>('.reveal').forEach((el) => {
-        gsap.to(el, {
-          opacity: 1, y: 0, duration: 1.1, ease: 'power3.out',
-          scrollTrigger: { trigger: el, start: 'top 82%' },
-        })
-      })
     }
   }
 

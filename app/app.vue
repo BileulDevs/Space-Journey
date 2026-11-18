@@ -1,35 +1,18 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useScrollJourney } from '~/composables/useScrollJourney'
 import { useSpaceAudio } from '~/composables/useSpaceAudio'
-import { personSchema } from '~/data/profile'
 import SpaceExperience from '~/components/SpaceExperience.vue'
 
-const showIntro = ref(true)
-const config = useRuntimeConfig()
 const journey = useScrollJourney()
 const audio = useSpaceAudio()
 const audioMuted = audio.muted
 
-// Données structurées (SEO) — rendu côté serveur dans le <head>.
-useHead({
-  script: [
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify(personSchema(config.public.siteUrl as string)),
-    },
-  ],
-})
-
-function onEngage() {
-  // le clic « Entrer » est le geste utilisateur requis pour démarrer l'audio
+// L'audio exige un geste utilisateur : on le démarre à la première interaction.
+const GESTURES = ['pointerdown', 'keydown', 'touchend'] as const
+function startAudioOnGesture() {
   audio.start()
-  journey.start()
-  setTimeout(() => (showIntro.value = false), 1300)
-}
-
-function onReturn() {
-  journey.scrollToTop()
+  GESTURES.forEach((g) => window.removeEventListener(g, startAudioOnGesture))
 }
 
 function onNav(id: string) {
@@ -42,9 +25,12 @@ function onToggleAudio() {
 
 onMounted(() => {
   journey.setup()
+  journey.start()
+  GESTURES.forEach((g) => window.addEventListener(g, startAudioOnGesture))
 })
 
 onBeforeUnmount(() => {
+  GESTURES.forEach((g) => window.removeEventListener(g, startAudioOnGesture))
   journey.destroy()
   audio.destroy()
 })
@@ -52,21 +38,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <!-- couche 3D (client only) -->
     <ClientOnly>
       <SpaceExperience />
     </ClientOnly>
 
-    <!-- HUD de mission persistant : chapitres cliquables + son -->
     <MissionHud :muted="audioMuted" @nav="onNav" @toggle-audio="onToggleAudio" />
 
-    <!-- contenu / chapitres (SSR, indexable) -->
-    <ChapterLayer />
-
-    <!-- bouton de retour au début (apparaît à la toute fin) -->
-    <ReturnToStart @return="onReturn" />
-
-    <!-- séquence d'introduction -->
-    <IntroSequence v-if="showIntro" @engage="onEngage" />
+    <JourneyTrack />
   </div>
 </template>
